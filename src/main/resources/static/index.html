@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeBench: AI Model Coding Benchmark</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="app.css">
+</head>
+<body>
+    <div class="background-glows">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+        <div class="glow glow-3"></div>
+    </div>
+
+    <header class="navbar">
+        <div class="logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">Vibe<span class="highlight">Bench</span></span>
+        </div>
+        <button class="btn btn-primary" id="btn-open-trigger-modal">🚀 Run Benchmark</button>
+    </header>
+
+    <main class="dashboard-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1>AI Model Coding Benchmark</h1>
+            <p>Evaluating coding LLMs in sandbox environments on code similarity, functional correctness, realism, and self-healing. Powered by OpenCode CLI.</p>
+        </section>
+
+        <!-- Stats Overview Row -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-icon">📊</span>
+                <div class="stat-info">
+                    <h3>Total Runs</h3>
+                    <p id="stat-total-runs">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">🏆</span>
+                <div class="stat-info">
+                    <h3>Top Model</h3>
+                    <p id="stat-top-model">N/A</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">⏱️</span>
+                <div class="stat-info">
+                    <h3>Avg Latency</h3>
+                    <p id="stat-avg-latency">0.0s</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">💰</span>
+                <div class="stat-info">
+                    <h3>Total Cost</h3>
+                    <p id="stat-total-cost">$0.00</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Grid Layout -->
+        <div class="dashboard-grid">
+            <!-- Leaderboard Column -->
+            <section class="grid-card leaderboard-section">
+                <h2>🏆 Top Models Leaderboard</h2>
+                <div class="leaderboard-list" id="leaderboard-container">
+                    <div class="loading-state">Loading rankings...</div>
+                </div>
+            </section>
+
+            <!-- Runs / Queue Column -->
+            <section class="grid-card runs-section">
+                <h2>🔄 Execution Run Queue</h2>
+                <div class="runs-list" id="runs-container">
+                    <div class="loading-state">Loading runs...</div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Trigger Modal -->
+    <div class="modal-overlay" id="trigger-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🚀 New Benchmark Run</h2>
+                <button class="close-btn" id="btn-close-trigger-modal">&times;</button>
+            </div>
+            <form id="form-trigger-benchmark">
+                <div class="form-group">
+                    <label for="input-model-name">Model Name</label>
+                    <input type="text" id="input-model-name" placeholder="e.g. DeepSeek V4 Flash Free, gpt-4o, claude-3-5-sonnet" required>
+                    <small>For testing, enter <strong>DeepSeek V4 Flash Free</strong> to run with zero API configuration.</small>
+                </div>
+                <div class="form-group">
+                    <label for="input-apikey">API Key (Optional)</label>
+                    <input type="password" id="input-apikey" placeholder="Enter API Key for premium cloud models">
+                    <small>Leave blank if using a free model option.</small>
+                </div>
+                <div class="form-group">
+                    <label for="input-ref-repo">Reference Repo URL (Optional)</label>
+                    <input type="url" id="input-ref-repo" placeholder="https://github.com/user/reference-project.git">
+                </div>
+                <div class="form-group">
+                    <label for="input-prompt">plan.md / Coding Prompt</label>
+                    <textarea id="input-prompt" rows="8" placeholder="# Plan Requirements&#10;Describe the software application to be generated..." required></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-trigger">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Start Execution</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal-overlay" id="details-modal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2 id="details-title">Model Evaluation Detail</h2>
+                <button class="close-btn" id="btn-close-details-modal">&times;</button>
+            </div>
+            <div class="details-grid">
+                <div class="scorecard-container">
+                    <h3>Metrics Summary</h3>
+                    <div class="overall-score-display">
+                        <div class="score-circle">
+                            <span id="detail-overall-score">0.0</span>
+                            <small>SCORE</small>
+                        </div>
+                    </div>
+                    <div class="metrics-bars">
+                        <div class="metric-row">
+                            <span class="metric-label">Functional Accuracy (35%)</span>
+                            <div class="metric-bar-container">
+                                <div class="metric-bar" id="bar-accuracy" style="width: 0%"></div>
+                            </div>
+                            <span class="metric-value" id="val-accuracy">0%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Code Quality (20%)</span>
+                            <div class="metric-bar-container">
+                                <div class="metric-bar" id="bar-quality" style="width: 0%"></div>
+                            </div>
+                            <span class="metric-value" id="val-quality">0%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Production Realism (15%)</span>
+                            <div class="metric-bar-container">
+                                <div class="metric-bar" id="bar-realism" style="width: 0%"></div>
+                            </div>
+                            <span class="metric-value" id="val-realism">0%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Security (15%)</span>
+                            <div class="metric-bar-container">
+                                <div class="metric-bar" id="bar-security" style="width: 0%"></div>
+                            </div>
+                            <span class="metric-value" id="val-security">0%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Cost & Latency (15%)</span>
+                            <div class="metric-bar-container">
+                                <div class="metric-bar" id="bar-cost-latency" style="width: 0%"></div>
+                            </div>
+                            <span class="metric-value" id="val-cost-latency">0%</span>
+                        </div>
+                    </div>
+                    <div class="detail-metadata">
+                        <p><strong>Latency:</strong> <span id="detail-latency">0.0s</span></p>
+                        <p><strong>Cost:</strong> <span id="detail-cost">$0.00</span></p>
+                        <p><strong>Status:</strong> <span id="detail-status">COMPLETED</span></p>
+                    </div>
+                </div>
+                <div class="terminal-container">
+                    <h3>Docker Execution Logs</h3>
+                    <pre class="terminal" id="detail-logs">Logs are loading...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 VibeBench. All Rights Reserved. Built with Spring Boot, Redis, and MongoDB.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

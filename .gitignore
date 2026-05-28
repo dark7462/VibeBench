@@ -1,0 +1,32 @@
+# Build and Class files
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Environment credentials (SENSITIVE)
+.env
+.env.*
+*.local
+
+# Sandbox Workspaces (Temporary benchmark executions)
+workspaces/
+test_output.log
+review_raw.txt
+
+# IDEs and Editors configuration
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+.antigravitycli/
+
+# OS Specific files
+.DS_Store
+Thumbs.db

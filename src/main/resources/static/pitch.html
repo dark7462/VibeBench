@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeBench Pitch & Presentation Deck</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #6366f1;
+            --secondary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --glass-bg: rgba(30, 41, 59, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient background glow */
+        .glow-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+        }
+
+        .glow-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+            top: -150px;
+            right: -100px;
+        }
+
+        .glow-2 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
+            bottom: -100px;
+            left: -100px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 5%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+            transition: var(--transition);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Presentation Container */
+        .presentation-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .deck-wrapper {
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            position: relative;
+            min-height: 580px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Slides Carousel */
+        .slide {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .slide.active {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        @media (max-width: 900px) {
+            .slide.active {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+
+        .slide-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .slide-num {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .slide-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 2.5rem;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slide-text {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .bullets-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .bullet-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .bullet-icon {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .bullet-text strong {
+            color: var(--text-primary);
+        }
+
+        /* Slide Visual Frame */
+        .slide-visual {
+            width: 100%;
+            height: 380px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: #090d16;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        .slide-visual img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .slide-visual img:hover {
+            transform: scale(1.03);
+        }
+
+        /* Navigation Controls */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 24px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--primary);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .dot.active {
+            background: var(--primary);
+            width: 28px;
+            border-radius: 6px;
+        }
+
+        /* External Presentation link container */
+        .footer-banner {
+            width: 100%;
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .footer-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        .banner-content h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .banner-content p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-bg">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+    </div>
+
+    <header>
+        <div class="logo">⚡ Vibe<span>Bench</span> Pitch</div>
+        <a href="/" class="btn">💻 Live Dashboard</a>
+    </header>
+
+    <main class="presentation-container">
+        <div class="deck-wrapper">
+            <!-- Slide 1: Problem -->
+            <div class="slide active" id="slide-1">
+                <div class="slide-content">
+                    <span class="slide-num">Slide 1 / 4 • Pain Point</span>
+                    <h2 class="slide-title">The LLM Coding Benchmark Problem</h2>
+                    <p class="slide-text">Measuring generative AI programming skills accurately is a major hurdle for developers and businesses. Traditional evaluation fails because:</p>
+                    <div class="bullets-list">
+                        <div class="bullet-item">
+                            <span class="bullet-icon">✕</span>
+                            <div class="bullet-text">
+                                <strong>Static Analysis Failure:</strong> Regex matching and syntax linters cannot verify if generated code actually executes or meets specifications.
+                            </div>
+                        </div>
+                        <div class="bullet-item">
+                            <span class="bullet-icon">✕</span>
+                            <div class="bullet-text">
+                                <strong>No Runtime Validation:</strong> Without compiling and running tests, developers deploy broken helper modules that fail in production.
+                            </div>
+                        </div>
+                        <div class="bullet-item">
+                            <span class="bullet-icon">✕</span>
+                            <div class="bullet-text">
+                                <strong>High Setup Friction:</strong> Provisioning safe VM sandboxes, installing compiler runtimes, and running CLI tools is slow and insecure.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-visual">
+                    <img src="images/media__1779953491918.png" alt="Benchmark Failure Graph">
+                </div>
+            </div>
+
+            <!-- Slide 2: Proposed Solution -->
+            <div class="slide" id="slide-2">
+                <div class="slide-content">
+                    <span class="slide-num">Slide 2 / 4 • Product Solution</span>
+                    <h2 class="slide-title">Isolated Sandboxing & Self-Healing</h2>
+                    <p class="slide-text">VibeBench orchestrates isolated Docker environments that install required developer packages on-demand, run unit tests, and heal code automatically:</p>
+                    <div class="bullets-list">
+                        <div class="bullet-item">
+                            <span class="bullet-icon">✓</span>
+                            <div class="bullet-text">
+                                <strong>Auto-Bootstrapping:</strong> The sandbox dynamically configures itself to build any code type (Java, Node, Python, Rust, Go).
+                            </div>
+                        </div>
+                        <div class="bullet-item">
+                            <span class="bullet-icon">✓</span>
+                            <div class="bullet-text">
+                                <strong>Self-Healing (5 Attempts):</strong> If compilation or unit tests fail, VibeBench auto-feeds logs back to the LLM to rewrite and heal the bugs.
+                            </div>
+                        </div>
+                        <div class="bullet-item">
+                            <span class="bullet-icon">✓</span>
+                            <div class="bullet-text">
+                                <strong>Strict Peer Review:</strong> AI models strictly self-evaluate their code quality, architecture realism, and potential security leaks.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-visual">
+                    <img src="images/VibeBench_SystemDesign.png" alt="VibeBench Workflow Diagram">
+                </div>
+            </div>
+
+            <!-- Slide 3: Tech Stack -->
+            <div class="slide" id="slide-3">
+                <div class="slide-content">
+                    <span class="slide-num">Slide 3 / 4 • Architecture</span>
+                    <h2 class="slide-title">Modular & Scalable Tech Stack</h2>
+                    <p class="slide-text">Built to be lightweight, secure, and production-ready for highly concurrent benchmarking runs:</p>
+                    <div class="bullets-list">
+                        <div class="bullet-item">
+                            <span class="bullet-icon">⚡</span>
+                            <div class="bullet-text">
+                                <strong>Backend:</strong> Java Spring Boot 3.4.2 (Async Task Executors for non-blocking sandbox threads).
+                            </div>
+                        </div>
+                        <div class="bullet-item">
+                            <span class="bullet-icon">📦</span>
+                            <div class="bullet-text">
+                                <strong>Databases:</strong> MongoDB Atlas (Job history, scores & terminal logs) and Redis Cloud (Top-10 leaderboard caching).
+                            </div>
+                        </div>
+                        <div class="bullet-item">
+                            <span class="bullet-icon">🐳</span>
+                            <div class="bullet-text">
+                                <strong>Execution:</strong> Docker Engine API (isolated micro-VM runtimes) and the OpenCode CLI.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-visual">
+                    <img src="images/media__1779867092699.png" alt="Tech Stack Showcase">
+                </div>
+            </div>
+
+            <!-- Slide 4: Target Audience -->
+            <div class="slide" id="slide-4">
+                <div class="slide-content">
+                    <span class="slide-num">Slide 4 / 4 • Customers</span>
+                    <h2 class="slide-title">Who is VibeBench Built For?</h2>
+                    <p class="slide-text">VibeBench empowers organizations and developers to make data-driven decisions on AI model adoption:</p>
+                    <div class="bullets-list">
+                        <div class="bullet-item">
+                            <span class="bullet-icon">👥</span>
+                            <div class="bullet-text">
+                                <strong>AI Developers & Engineers:</strong> Instantly test code generations in sandboxes to ensure correctness before integration.
+                            </div>
+                        </div>
+                        <div class="bullet-item">
+                            <span class="bullet-icon">👥</span>
+                            <div class="bullet-text">
+                                <strong>Enterprise DevOps Teams:</strong> Monitor cost, latency, and security leak scores across models before deployment.
+                            </div>
+                        </div>
+                        <div class="bullet-item">
+                            <span class="bullet-icon">👥</span>
+                            <div class="bullet-text">
+                                <strong>Model Researchers:</strong> Run large evaluations to score coding models objectively based on runtime test passes rather than static tokens.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-visual">
+                    <img src="images/media__1779866256303.png" alt="Dashboard Leaderboard UI screenshot">
+                </div>
+            </div>
+
+            <!-- Slider Control Row -->
+            <div class="controls">
+                <button class="nav-btn" id="prev-btn" disabled>← Previous</button>
+                <div class="dots" id="dots-container">
+                    <div class="dot active"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <button class="nav-btn" id="next-btn">Next →</button>
+            </div>
+        </div>
+
+        <!-- Banner with Presentation Link -->
+        <div class="footer-banner">
+            <div class="banner-content">
+                <h4>🔗 Official Pitch Deck Link</h4>
+                <p>Publicly accessible presentation file covering business case, metrics, and long-term vision.</p>
+            </div>
+            <a href="https://docs.google.com/presentation/d/1B6B2o6w48KjH1n_60X99p_oF2D_G7Yw-s0G-GZ0j8Z0/edit?usp=sharing" target="_blank" class="btn">View Slide Presentation</a>
+        </div>
+    </main>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.dot');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        let currentSlide = 0;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                dots[i].classList.remove('active');
+                if (i === index) {
+                    slide.classList.add('active');
+                    dots[i].classList.add('active');
+                }
+            });
+
+            // Disable/enable navigation buttons
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === slides.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        });
+
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentSlide = index;
+                showSlide(currentSlide);
+            });
+        });
+
+        // Keybindings for navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && currentSlide > 0) {
+                currentSlide--;
+                showSlide(currentSlide);
+            } else if (e.key === 'ArrowRight' && currentSlide < slides.length - 1) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        });
+    </script>
+</body>
+</html>

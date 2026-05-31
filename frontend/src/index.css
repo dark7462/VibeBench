@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+@theme {
+  --color-earth-dark: #221a16;
+  --color-earth-medium: #30241e;
+  --color-earth-card: rgba(48, 36, 30, 0.85);
+  --color-sage-green: #9fa47c;
+  --color-rose-pink: #df99a4;
+  --color-dusty-rose: #ebd2d4;
+  --color-cream-ivory: #f9f6f0;
+  --color-border-pink: rgba(223, 153, 164, 0.22);
+  --color-border-green: rgba(159, 164, 124, 0.22);
+
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-earth-dark);
+    color: var(--color-cream-ivory);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-earth-dark);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2b221d;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-sage-green);
+  }
+}
+
+/* Background Orbiting Glow Elements */
+.background-glows {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(130px);
+  opacity: 0.16;
+}
+
+.glow-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, var(--color-rose-pink) 0%, transparent 70%);
+  top: -150px;
+  right: -100px;
+  animation: orbit1 25s infinite linear;
+}
+
+.glow-2 {
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, var(--color-sage-green) 0%, transparent 70%);
+  bottom: -150px;
+  left: -100px;
+  animation: orbit2 30s infinite linear;
+}
+
+@keyframes orbit1 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(100px, 80px) scale(1.1); }
+  66% { transform: translate(-50px, 150px) scale(0.95); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes orbit2 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-80px, -120px) scale(0.9); }
+  66% { transform: translate(120px, -60px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Modal Fade Transitions */
+.modal-overlay {
+  background-color: rgba(10, 8, 7, 0.85);
+  backdrop-filter: blur(8px);
+  transition: opacity 0.3s ease;
+}
+
+.modal-content {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

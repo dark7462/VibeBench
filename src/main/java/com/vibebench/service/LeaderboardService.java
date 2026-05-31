@@ -131,7 +131,7 @@ public class LeaderboardService {
 
             LeaderboardEntry le = new LeaderboardEntry();
             le.setModelName(model);
-            le.setScore(Math.round(avgScore * 100.0) / 100.0);
+            le.setScore(Math.round(avgScore * 10.0) / 10.0);
             le.setRunCount(count);
             le.setAvgLatencyMs(Math.round(avgLatency * 100.0) / 100.0);
             le.setAvgCostUsd(Math.round(avgCost * 10000.0) / 10000.0);

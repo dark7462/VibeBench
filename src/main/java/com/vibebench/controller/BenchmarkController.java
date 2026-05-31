@@ -99,4 +99,42 @@ public class BenchmarkController {
         }
         return ResponseEntity.ok(job);
     }
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStats() {
+        List<BenchmarkJob> allJobs = jobRepository.findAll();
+        long totalRuns = allJobs.size();
+
+        String topModel = "N/A";
+        List<LeaderboardService.LeaderboardEntry> leaderboard = leaderboardService.getLeaderboard();
+        if (leaderboard != null && !leaderboard.isEmpty()) {
+            topModel = leaderboard.get(0).getModelName();
+        }
+
+        List<BenchmarkJob> completedJobs = allJobs.stream()
+                .filter(j -> j.getStatus() == com.vibebench.model.JobStatus.COMPLETED && j.getMetrics() != null)
+                .toList();
+
+        double avgLatencyMs = 0.0;
+        double totalCostUsd = 0.0;
+
+        if (!completedJobs.isEmpty()) {
+            double totalLatency = completedJobs.stream()
+                    .mapToDouble(j -> j.getMetrics().getOrDefault("latencyMs", 0.0))
+                    .sum();
+            avgLatencyMs = totalLatency / completedJobs.size();
+
+            totalCostUsd = completedJobs.stream()
+                    .mapToDouble(j -> j.getMetrics().getOrDefault("costUsd", 0.0))
+                    .sum();
+        }
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalRuns", totalRuns);
+        stats.put("topModel", topModel);
+        stats.put("avgLatencyMs", avgLatencyMs);
+        stats.put("totalCostUsd", totalCostUsd);
+
+        return ResponseEntity.ok(stats);
+    }
 }

@@ -67,7 +67,7 @@ public class EvaluatorService {
                 + (eval.security * 0.15)
                 + (eval.costLatency * 0.15);
 
-        eval.overallScore = Math.round(rawScore * 100.0) / 100.0;
+        eval.overallScore = Math.round(rawScore * 1000.0) / 10.0;
         return eval;
     }
 

@@ -55,7 +55,11 @@ public class DockerSandboxService {
 
         try {
             // Prefix prompt to instruct the model to install required languages/frameworks dynamically
-            String prefixedPrompt = "Based on the given host machine (Ubuntu 24.04), install the required languages, compilers, frameworks, package managers, etc. needed for the given prompt. For database dependencies inside tests, ignore what ever is mentioned in the main prompt and use  in-memory databases or SQLite to ensure self-contained, successful sandbox execution.\n\n" + prompt;
+            String instructions = "Based on the given host machine (Ubuntu 24.04), install the required languages, compilers, frameworks, package managers, etc. needed for the given prompt. For database dependencies inside tests, ignore what ever is mentioned in the main prompt and use  in-memory databases or SQLite to ensure self-contained, successful sandbox execution.";
+            if (!mentionsLanguageOrFramework(prompt)) {
+                instructions += " Note: Since no programming language or framework was specified in the prompt, you must default to using Python and write standard tests using pytest.";
+            }
+            String prefixedPrompt = instructions + "\n\n" + prompt;
             Files.writeString(jobPath.resolve("plan.md"), prefixedPrompt, StandardCharsets.UTF_8);
         } catch (IOException e) {
             log.error("Failed to write plan.md", e);
@@ -528,5 +532,24 @@ public class DockerSandboxService {
             }
         }
         return costs[s2.length()];
+    }
+
+    private boolean mentionsLanguageOrFramework(String prompt) {
+        if (prompt == null) return false;
+        String lower = prompt.toLowerCase();
+        String[] keywords = {
+            "java", "spring", "maven", "pom.xml", "gradle", "springboot",
+            "javascript", "typescript", "node", "npm", "package.json", "react", "vue", "angular", "express",
+            "golang", "go.mod", "rust", "cargo", "cargo.toml",
+            "python", "pip", "requirements.txt", "flask", "django", "fastapi", "pytest",
+            "ruby", "gemfile", "rails", "php", "composer", "c++", "cpp", "c#", "dotnet",
+            "html", "css", "assembly", "bash", "shell", "c language", "fortran", "kotlin", "swift", "scala"
+        };
+        for (String keyword : keywords) {
+            if (lower.contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

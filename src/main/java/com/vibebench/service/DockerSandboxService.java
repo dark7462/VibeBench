@@ -19,7 +19,7 @@ public class DockerSandboxService {
 
     private static final Logger log = LoggerFactory.getLogger(DockerSandboxService.class);
 
-    private static final String BASE_WORKSPACES_DIR = "/Users/dark/MyStuff/Code/Projects/OpenAiXOutSkill-Hackerthon/VibeBench/workspaces";
+    private static final String BASE_WORKSPACES_DIR = System.getenv().getOrDefault("VIBEBENCH_WORKSPACES_DIR", System.getProperty("user.dir") + "/workspaces");
 
     private final BenchmarkJobRepository jobRepository;
 

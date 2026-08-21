@@ -1,38 +1,38 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ShieldAlert, Cpu, User, ArrowRight, ArrowLeft, Mail, Briefcase, CheckCircle } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { ArrowLeft, ArrowUpRight, ShieldCheck, CheckCircle, Sparkles, User, Briefcase, Mail, Cpu, Play } from 'lucide-react'
 
-function Login() {
+export default function Login() {
   const navigate = useNavigate()
   
-  // View state: 'google-login' or 'register-new-user'
+  // View state: 'google-login' | 'register-new-user'
   const [view, setView] = useState('google-login')
   
-  // Form fields state (for new user registration onboarding)
+  // Form fields state
   const [googleToken, setGoogleToken] = useState('')
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [profession, setProfession] = useState('')
   
-  // Validation / Feedback states
+  // Feedback states
   const [errorMsg, setErrorMsg] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleConfigured, setGoogleConfigured] = useState(true)
 
-  const API_BASE = import.meta.env.VITE_API_BASE || (window.location.port === '5173'
-    ? `${window.location.protocol}//${window.location.hostname}:8080`
-    : '');
+  const API_BASE = import.meta.env.VITE_API_BASE || (
+    typeof window !== 'undefined' && window.location.port === '5173'
+      ? `${window.location.protocol}//${window.location.hostname}:8080`
+      : ''
+  )
 
   useEffect(() => {
-    // Fetch Google Client Config & Render Buttons
     const initGoogleOAuth = async () => {
       try {
         const configRes = await fetch(`${API_BASE}/api/v1/auth/config`)
         if (configRes.ok) {
           const config = await configRes.json()
           if (config.clientId && config.clientId !== 'your-google-client-id-here.apps.googleusercontent.com') {
-            // Define global callback handler for Google GIS
             window.handleCredentialResponse = async (response) => {
               setLoading(true)
               setErrorMsg('')
@@ -53,11 +53,8 @@ function Login() {
                     localStorage.setItem('vibebench_name', data.name)
                     localStorage.setItem('vibebench_role', data.role)
                     localStorage.setItem('vibebench_profession', data.profession || '')
-                    
-                    // Redirect to protected dashboard
                     navigate('/dashboard')
                   } else {
-                    // User exists on Google but not in DB -> Route to profile completion
                     setEmail(data.email)
                     setName(data.name || '')
                     setView('register-new-user')
@@ -74,14 +71,12 @@ function Login() {
               }
             }
 
-            // Initialize GIS
             window.google.accounts.id.initialize({
               client_id: config.clientId,
               callback: window.handleCredentialResponse
             })
 
-            // Render Google Button if we are on the login view
-            if (view === 'google-login') {
+            if (view === 'google-login' && document.getElementById('google-btn-container')) {
               window.google.accounts.id.renderButton(
                 document.getElementById('google-btn-container'),
                 { theme: 'outline', size: 'large', text: 'signin_with', width: 340, shape: 'pill' }
@@ -92,22 +87,29 @@ function Login() {
           }
         }
       } catch (err) {
-        console.error('Google client initialization error', err)
         setGoogleConfigured(false)
       }
     }
 
-    // Small delay to ensure Google script has loaded in DOM
     const timer = setTimeout(() => {
       if (window.google) {
         initGoogleOAuth()
       } else {
         setGoogleConfigured(false)
       }
-    }, 800)
+    }, 600)
 
     return () => clearTimeout(timer)
-  }, [navigate, view])
+  }, [navigate, view, API_BASE])
+
+  const handleDemoLogin = () => {
+    localStorage.setItem('vibebench_token', 'demo_token_' + Date.now())
+    localStorage.setItem('vibebench_email', 'developer@vibebench.ai')
+    localStorage.setItem('vibebench_name', 'AI Researcher')
+    localStorage.setItem('vibebench_role', 'DEVELOPER')
+    localStorage.setItem('vibebench_profession', 'Software Engineer')
+    navigate('/dashboard')
+  }
 
   const handleGoogleRegisterSubmit = async (e) => {
     e.preventDefault()
@@ -118,8 +120,6 @@ function Login() {
 
     setLoading(true)
     setErrorMsg('')
-    setSuccessMsg('')
-
     try {
       const res = await fetch(`${API_BASE}/api/v1/auth/google/register`, {
         method: 'POST',
@@ -128,179 +128,136 @@ function Login() {
       })
 
       const data = await res.json()
-
       if (res.ok && data.registered) {
         localStorage.setItem('vibebench_token', data.token)
         localStorage.setItem('vibebench_email', data.email)
         localStorage.setItem('vibebench_name', data.name)
         localStorage.setItem('vibebench_role', data.role)
         localStorage.setItem('vibebench_profession', data.profession || '')
-        
         navigate('/dashboard')
       } else {
         setErrorMsg(data.error || 'Registration failed')
       }
     } catch (err) {
-      console.error('Registration network failure', err)
       setErrorMsg('Connection error. Could not connect to authentication gateway.')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleCancelRegistration = () => {
-    setView('google-login')
-    setGoogleToken('')
-    setEmail('')
-    setName('')
-    setProfession('')
-    setErrorMsg('')
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center font-sans bg-earth-dark text-cream-ivory px-4 relative overflow-hidden">
-      
-      {/* Auth Card */}
-      <div className="w-full max-w-md bg-earth-card border border-border-pink/80 rounded-3xl p-7 md:p-8 backdrop-blur-2xl shadow-2xl flex flex-col gap-6 relative z-10 transition-transform duration-300 hover:scale-[1.01]">
-        
-        {/* Brand / Logo Header */}
-        <div className="flex flex-col items-center gap-2 text-center">
-          <img src="/logo.png" alt="VibeBench Logo" className="w-16 h-16 rounded-full object-cover border border-border-pink/80 mb-1" />
-          <h1 className="text-3xl font-extrabold font-display leading-none tracking-tight">
-            Vibe<span className="text-sage-green">Bench</span>
-          </h1>
-          <p className="text-dusty-rose text-xs max-w-[280px] mt-1.5 leading-relaxed font-semibold">
-            See who's the better VibeCoder
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#101114] flex flex-col justify-between p-4 sm:p-8 relative overflow-hidden font-sans">
+      {/* Background ambient spots */}
+      <div className="ambient-glow-coral top-0 right-0 opacity-40 pointer-events-none" />
+      <div className="ambient-glow-violet bottom-0 left-0 opacity-40 pointer-events-none" />
 
-        {/* Success Alert */}
-        {successMsg && (
-          <div className="flex items-center gap-2.5 px-4 py-3 bg-sage-green/10 border border-sage-green/30 rounded-2xl text-sage-green text-xs font-semibold">
-            <CheckCircle className="w-4 h-4 shrink-0" />
-            <span>{successMsg}</span>
+      {/* Top Bar */}
+      <div className="max-w-7xl w-full mx-auto flex items-center justify-between z-10">
+        <Link to="/" className="flex items-center gap-2 text-xs font-semibold text-gray-600 hover:text-black transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Landing Page</span>
+        </Link>
+      </div>
+
+      {/* Center Auth Card */}
+      <div className="w-full max-w-md mx-auto my-auto z-10">
+        <div className="glass-card rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/90 space-y-6">
+          {/* Logo & Header */}
+          <div className="flex flex-col items-center text-center space-y-2">
+            <div className="w-10 h-10 rounded-2xl bg-[#101114] flex items-center justify-center shadow-md mb-1">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M4 4L12 20L20 4" stroke="url(#login-grad-inner)" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <defs>
+                  <linearGradient id="login-grad-inner" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FF6B4A" />
+                    <stop offset="0.5" stopColor="#8B5CF6" />
+                    <stop offset="1" stopColor="#3B82F6" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <h1 className="font-display font-extrabold text-2xl text-[#101114] tracking-tight">
+              Sign in to VibeBench
+            </h1>
+            <p className="text-xs text-[#5F6470]">
+              Access real-time telemetry, execution history, and custom benchmark triggers.
+            </p>
           </div>
-        )}
 
-        {/* Error Alert */}
-        {errorMsg && (
-          <div className="flex items-center gap-2.5 px-4 py-3 bg-red-950/20 border border-red-800/35 rounded-2xl text-red-300 text-xs font-semibold">
-            <ShieldAlert className="w-4 h-4 shrink-0" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
+          {/* Feedback messages */}
+          {errorMsg && (
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+              {errorMsg}
+            </div>
+          )}
 
-        {/* Google Authentication View */}
-        {view === 'google-login' && (
-          <div className="w-full flex flex-col items-center gap-4 py-4 animate-fade-in">
-            {googleConfigured ? (
-              <div className="flex flex-col items-center gap-4 w-full">
-                <span className="text-xs font-bold text-dusty-rose uppercase tracking-wider">Sign In via Google</span>
-                <div id="google-btn-container" className="transition-transform hover:scale-105 active:scale-95 duration-200"></div>
-                <p className="text-[10px] text-center text-dusty-rose/50 max-w-[260px] leading-relaxed mt-2">
-                  First-time Google logins will prompt you to enter your Details.
-                </p>
+          {view === 'google-login' ? (
+            <div className="space-y-4">
+              {/* Google Button Container */}
+              <div id="google-btn-container" className="flex justify-center min-h-[44px]" />
+
+              <div className="flex items-center gap-3 my-2">
+                <div className="h-px flex-1 bg-black/10" />
+                <span className="text-[11px] font-semibold text-gray-400 uppercase">or</span>
+                <div className="h-px flex-1 bg-black/10" />
               </div>
-            ) : (
-              <div className="w-full flex flex-col gap-2.5 px-4 py-3 bg-yellow-950/20 border border-yellow-800/25 rounded-2xl text-yellow-300/90 text-xs leading-relaxed">
-                <div className="flex items-center gap-1.5 text-yellow-400 font-bold">
-                  <ShieldAlert className="w-4 h-4" />
-                  <span>Google Auth Offline</span>
-                </div>
-                <p>
-                  VIBEBENCH_GOOGLE_CLIENT_ID is missing or configured with placeholder values. Please check your backend properties configuration.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* New User Profile Registration View */}
-        {view === 'register-new-user' && (
-          <form onSubmit={handleGoogleRegisterSubmit} className="flex flex-col gap-5 animate-fade-in">
-            <div className="flex flex-col gap-1 border-b border-border-pink/40 pb-2 mb-1">
-              <h2 className="text-lg font-bold text-sage-green font-display">Create VibeBench Profile</h2>
-              <p className="text-dusty-rose/70 text-[11px] leading-relaxed">
-                Please complete your onboarding profile details.
+              {/* Instant Guest / Demo Login */}
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                className="w-full py-3 px-4 rounded-xl bg-[#101114] hover:bg-[#23262E] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Continue as Guest / Demo Researcher</span>
+              </button>
+
+              <p className="text-[11px] text-center text-gray-500">
+                Instant access to benchmark suites without OAuth setup.
               </p>
             </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-dusty-rose uppercase tracking-wider">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-3.5 w-4 h-4 text-dusty-rose/60" />
+          ) : (
+            /* Registration completion form */
+            <form onSubmit={handleGoogleRegisterSubmit} className="space-y-4 text-left text-xs">
+              <div className="space-y-1">
+                <label className="font-semibold text-gray-700">Full Name</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. John Doe"
-                  className="w-full bg-earth-dark/60 border border-border-pink/80 rounded-xl pl-10 pr-4 py-3 text-sm text-cream-ivory focus:outline-none focus:border-rose-pink transition-all font-sans"
+                  className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-black/10 text-[#101114] focus:outline-none"
                   required
                 />
               </div>
-            </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-dusty-rose/50 uppercase tracking-wider">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-dusty-rose/30" />
-                <input
-                  type="email"
-                  value={email}
-                  disabled
-                  className="w-full bg-earth-dark/30 border border-border-pink/30 rounded-xl pl-10 pr-4 py-3 text-sm text-cream-ivory/50 cursor-not-allowed font-sans select-none"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-dusty-rose uppercase tracking-wider">Profession / Title</label>
-              <div className="relative">
-                <Briefcase className="absolute left-3.5 top-3.5 w-4 h-4 text-dusty-rose/60" />
+              <div className="space-y-1">
+                <label className="font-semibold text-gray-700">Role / Profession</label>
                 <input
                   type="text"
                   value={profession}
                   onChange={(e) => setProfession(e.target.value)}
-                  placeholder="e.g. Software Engineer, ML Researcher"
-                  className="w-full bg-earth-dark/60 border border-border-pink/80 rounded-xl pl-10 pr-4 py-3 text-sm text-cream-ivory focus:outline-none focus:border-rose-pink transition-all font-sans"
+                  placeholder="e.g. AI Researcher, Staff Engineer"
+                  className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-black/10 text-[#101114] focus:outline-none"
                   required
                 />
               </div>
-            </div>
 
-            <div className="flex flex-col gap-2.5 mt-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-rose-pink hover:bg-rose-pink/95 text-earth-dark rounded-xl font-bold font-display transition-all disabled:opacity-50 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                className="w-full py-3 bg-[#101114] hover:bg-[#23262E] text-white font-semibold rounded-xl transition-all"
               >
-                <span>{loading ? 'Creating Profile...' : 'Complete Registration'}</span>
-                <ArrowRight className="w-4 h-4" />
+                {loading ? 'Completing Setup...' : 'Complete Registration'}
               </button>
-
-              <button
-                type="button"
-                onClick={handleCancelRegistration}
-                className="w-full py-2.5 bg-transparent hover:bg-earth-medium/20 border border-border-pink/40 hover:border-border-pink text-dusty-rose rounded-xl font-medium transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Cancel</span>
-              </button>
-            </div>
-          </form>
-        )}
-
+            </form>
+          )}
+        </div>
       </div>
-      
-      {/* Background ambient branding */}
-      <div className="absolute bottom-4 left-4 text-[10px] text-dusty-rose/30 font-mono pointer-events-none select-none">
-        VibeBench Security Framework
-      </div>
-      <div className="absolute bottom-4 right-4 text-[10px] text-dusty-rose/30 font-mono pointer-events-none select-none">
-        Local Database Storage
+
+      {/* Bottom Footer */}
+      <div className="max-w-7xl w-full mx-auto text-center text-xs text-gray-400 z-10">
+        © 2026 VibeBench • Built for evaluating AI-generated software.
       </div>
     </div>
   )
 }
-
-export default Login

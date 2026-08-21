@@ -16,7 +16,10 @@ public class JwtService {
     private final Algorithm algorithm;
 
     public JwtService() {
-        String secret = System.getProperty("VIBEBENCH_JWT_SECRET");
+        String secret = System.getenv("VIBEBENCH_JWT_SECRET");
+        if (secret == null || secret.trim().isEmpty()) {
+            secret = System.getProperty("VIBEBENCH_JWT_SECRET");
+        }
         if (secret == null || secret.trim().isEmpty() || secret.length() < 32) {
             secret = "vibebench-custom-auth-v2-fallback-hmac-key-256-bits-long-secret";
         }

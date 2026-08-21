@@ -311,7 +311,11 @@ public class AuthController {
     @GetMapping("/config")
     public ResponseEntity<Map<String, String>> getConfig() {
         Map<String, String> config = new HashMap<>();
-        config.put("clientId", System.getProperty("VIBEBENCH_GOOGLE_CLIENT_ID", ""));
+        String clientId = System.getenv("VIBEBENCH_GOOGLE_CLIENT_ID");
+        if (clientId == null || clientId.trim().isEmpty()) {
+            clientId = System.getProperty("VIBEBENCH_GOOGLE_CLIENT_ID", "");
+        }
+        config.put("clientId", clientId);
         return ResponseEntity.ok(config);
     }
 }

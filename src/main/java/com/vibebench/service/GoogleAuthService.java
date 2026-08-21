@@ -18,7 +18,11 @@ public class GoogleAuthService {
 
     public GoogleAuthService() {
         this.restTemplate = new RestTemplate();
-        this.expectedClientId = System.getProperty("VIBEBENCH_GOOGLE_CLIENT_ID");
+        String clientId = System.getenv("VIBEBENCH_GOOGLE_CLIENT_ID");
+        if (clientId == null || clientId.trim().isEmpty()) {
+            clientId = System.getProperty("VIBEBENCH_GOOGLE_CLIENT_ID");
+        }
+        this.expectedClientId = clientId;
     }
 
     public static class GoogleUser {

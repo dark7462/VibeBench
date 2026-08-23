@@ -49,7 +49,7 @@ export default function FeatureSection() {
       tag: '5 Vector Matrix'
     },
     {
-      title: 'Redis Leaderboard',
+      title: 'SQLite Leaderboard',
       badge: 'Real-Time Rank',
       description: 'Distributed in-memory caching and atomic sorted sets for instant rank synchronization under heavy load.',
       icon: Database,

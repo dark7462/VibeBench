@@ -102,7 +102,7 @@ export default function Footer({ onOpenBenchmark, onOpenDocs, onNavigateSection 
             <div className="space-y-2 text-xs text-[#5F6470] font-mono leading-relaxed">
               <div>• gVisor Ephemeral Sandboxes</div>
               <div>• 5-Step AST Self-Healing Engine</div>
-              <div>• Redis Sorted Sets Cache</div>
+              <div>• SQLite Leaderboard Cache</div>
               <div>• Spring Boot Core Orchestrator</div>
             </div>
           </div>

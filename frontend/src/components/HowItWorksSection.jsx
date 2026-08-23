@@ -47,7 +47,7 @@ export default function HowItWorksSection() {
       color: 'text-emerald-500',
       badgeBg: 'bg-emerald-50',
       borderAccent: 'hover:border-emerald-300',
-      detail: 'Produces immutable audit receipts and updates the global Redis leaderboard.'
+      detail: 'Produces immutable audit receipts and updates the global SQLite leaderboard.'
     }
   ]
 

@@ -1,5 +1,12 @@
 version: '3.8'
 
+# VibeBench docker-compose — for local testing only.
+# For AWS production, run uvicorn directly on EC2 (see README for deploy guide).
+#
+# NOTE: The backend needs access to the Docker socket (/var/run/docker.sock)
+# so it can spawn isolated sandbox containers for benchmark runs.
+# This is why we mount the socket as a volume below.
+
 services:
   backend:
     build:
@@ -9,9 +16,13 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/vibebench.db:/app/backend/vibebench.db
-      - /var/run/docker.sock:/var/run/docker.sock # Allows containerized backend to spawn sandbox containers
+      # Persist SQLite database across container restarts
+      - ./backend/vibebench.db:/app/vibebench.db
+      # Give the backend access to the host's Docker daemon
+      # so it can spawn ubuntu:22.04 sandbox containers
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - VIBEBENCH_JWT_SECRET=vibe-bench-custom-auth-v2-jwt-signature-key-256-bits-long-secure-key
-      - VIBEBENCH_GOOGLE_CLIENT_ID=972017410426-v9na2cep5uvu47odj524nsbb90np39n3.apps.googleusercontent.com
+      - VIBEBENCH_JWT_SECRET=${VIBEBENCH_JWT_SECRET:-change-me-in-production}
+      - VIBEBENCH_GOOGLE_CLIENT_ID=${VIBEBENCH_GOOGLE_CLIENT_ID:-}
+      - SQLITE_DB_PATH=/app/vibebench.db
     restart: unless-stopped

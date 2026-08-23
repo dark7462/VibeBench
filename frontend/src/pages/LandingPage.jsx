@@ -16,7 +16,12 @@ import CompareModal from '../components/CompareModal'
 import DocsModal from '../components/DocsModal'
 
 export default function LandingPage() {
-  const [isLoading, setIsLoading] = useState(true)
+  // Only show the loading screen on the very first visit in this browser session.
+  // sessionStorage persists across tab switches but clears when the tab is closed.
+  // This prevents the white-flash loading replay every time the user navigates back.
+  const [isLoading, setIsLoading] = useState(
+    () => !sessionStorage.getItem('vb_loaded')
+  )
   const [benchmarkModalOpen, setBenchmarkModalOpen] = useState(false)
   const [compareModalOpen, setCompareModalOpen] = useState(false)
   const [compareModels, setCompareModels] = useState([])
@@ -44,8 +49,15 @@ export default function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-[#FAFAFA] text-[#101114] font-sans selection:bg-[#101114] selection:text-white">
-      {/* 1. Initial Minimal Loading Sequence */}
-      {isLoading && <LoadingScreen onFinished={() => setIsLoading(false)} />}
+      {/* 1. Initial Minimal Loading Sequence — only shown once per browser session */}
+      {isLoading && (
+        <LoadingScreen
+          onFinished={() => {
+            sessionStorage.setItem('vb_loaded', '1') // mark as shown
+            setIsLoading(false)
+          }}
+        />
+      )}
 
       {/* 2. Interactive Antigravity Particle Background */}
       <InteractiveBackground />

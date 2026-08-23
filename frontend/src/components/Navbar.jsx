@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { ArrowUpRight, Menu, X, Terminal, Cpu, ShieldCheck, User } from 'lucide-react'
 
 export default function Navbar({ onOpenBenchmark, onOpenDocs, onNavigateSection }) {
@@ -85,22 +86,22 @@ export default function Navbar({ onOpenBenchmark, onOpenDocs, onNavigateSection 
         {/* Right: Actions */}
         <div className="hidden sm:flex items-center gap-3">
           {token ? (
-            <a
-              href="/dashboard"
+            <Link
+              to="/dashboard"
               className="px-3.5 py-1.5 text-[13px] font-medium text-[#101114] hover:bg-black/5 rounded-full transition-all flex items-center gap-1.5"
             >
               <div className="w-6 h-6 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-semibold">
                 {userName.charAt(0).toUpperCase()}
               </div>
               <span>Dashboard</span>
-            </a>
+            </Link>
           ) : (
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className="px-4 py-1.5 text-[13.5px] font-medium text-[#101114] hover:bg-black/5 rounded-full transition-all duration-150"
             >
               Sign in
-            </a>
+            </Link>
           )}
 
           <button
@@ -139,19 +140,19 @@ export default function Navbar({ onOpenBenchmark, onOpenDocs, onNavigateSection 
             <div className="h-px bg-black/5 my-1" />
             <div className="flex flex-col gap-2 pt-1">
               {token ? (
-                <a
-                  href="/dashboard"
+                <Link
+                  to="/dashboard"
                   className="w-full text-center py-2 text-sm font-medium text-[#101114] bg-black/5 rounded-full"
                 >
                   Dashboard ({userName})
-                </a>
+                </Link>
               ) : (
-                <a
-                  href="/login"
+                <Link
+                  to="/login"
                   className="w-full text-center py-2 text-sm font-medium text-[#101114] bg-black/5 rounded-full"
                 >
                   Sign in
-                </a>
+                </Link>
               )}
               <button
                 onClick={() => {

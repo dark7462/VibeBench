@@ -6,19 +6,22 @@ Built with an ultra-lightweight **Python FastAPI** backend, **SQLite** database 
 
 ---
 
-## 🚀 Key Features
+## ✨ Key Features
 
 *   **Isolated Docker Sandboxes**: Spawns isolated execution environments (`ubuntu:22.04`) to compile and test LLM-generated code safely without host exposure.
 *   **Ephemeral Workspace Lifecycle**: Transient workspace directories are generated in temporary storage per job and automatically cleaned up from disk upon completion.
 *   **5-Step Self-Healing Loop**: If generated unit tests fail, the orchestrator triggers an automatic self-healing cycle feeding the error logs back to the LLM to fix the codebase.
 *   **Multi-Dimensional Scoring (Evaluator)**:
-    *   **Functional Accuracy (35%)**: Actual unit test pass rates parsed from test suites.
-    *   **Code Quality (20%)**: Line-based Jaccard similarity compared to reference repo or structural heuristics.
+    *   **Functional Accuracy (40%)**: Actual unit test pass rates parsed from test suites.
+    *   **Code Quality (20%)**: Based on test outcomes and number of files generated. Zero files = zero score (anti-cheat gate).
     *   **Production Realism (15%)**: Scans codebases for standard enterprise architecture components (Controllers, Services, Auth, Configs).
     *   **Security (15%)**: Scans codebases for command execution vulnerabilities (`eval()`, `exec()`) and hardcoded credentials.
-    *   **Cost & Latency (15%)**: Scores based on execution duration and whether a cloud API key was used or a free model.
+    *   **Cost & Latency (10%)**: Scores based on execution duration and whether a cloud API key was used or a free model.
 *   **Zero-Config SQLite Storage**: Embedded database created automatically in `backend/vibebench.db`. Runs identically on Mac, Linux, and Cloud instances without MongoDB or Redis daemons.
 *   **Real-Time Log Streaming**: Live SSE stream `/api/v1/job/{jobId}/stream` and polled telemetry `/api/v1/job/{jobId}` for instant terminal inspection.
+*   **Live Free Model Discovery**: `/api/v1/models` runs `opencode models` CLI live to return currently available free models — no API key required.
+*   **Anti-Cheat Scoring**: File count verified before scoring. Empty project directory = score 0.0, regardless of what the runner script reports.
+*   **ANSI-Clean Logs**: All terminal escape codes stripped before storage so the browser terminal displays clean readable text.
 
 ---
 
@@ -32,7 +35,7 @@ Built with an ultra-lightweight **Python FastAPI** backend, **SQLite** database 
 │   │   ├── database.py          # SQLAlchemy async SQLite engine & session manager
 │   │   ├── models/              # User & Benchmark database models and Pydantic schemas
 │   │   ├── auth/                # JWT handler, password hashing, and Google OAuth
-│   │   ├── routers/             # API routes: /healthcheck, /auth, /model, /leaderboard, /job
+│   │   ├── routers/             # API routes: /healthcheck, /auth, /model, /leaderboard, /job, /models
 │   │   └── services/            # Docker Sandbox, Self-Healing, Evaluator, Leaderboard, Orchestrator
 │   ├── requirements.txt         # Python dependencies (FastAPI, SQLAlchemy, aiosqlite, PyJWT, etc.)
 │   └── Dockerfile               # Production container blueprint
@@ -50,6 +53,7 @@ Built with an ultra-lightweight **Python FastAPI** backend, **SQLite** database 
 *   Python 3.10+
 *   Node.js 18+ & npm
 *   Docker Desktop running locally
+*   [opencode](https://opencode.ai) CLI installed (`brew install opencode` on Mac)
 
 ### 2. Run Backend (FastAPI)
 ```bash
@@ -88,9 +92,9 @@ The application automatically seeds a default administrator account on first boo
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/api/v1/healthcheck` | System status, SQLite connectivity, Docker readiness |
+| `GET` | `/api/v1/models` | Live free models from `opencode models` CLI + API provider list |
 | `POST` | `/api/v1/auth/login` | Authenticates username/email & password; returns JWT |
 | `POST` | `/api/v1/auth/register` | Registers new user account |
-| `POST` | `/api/v1/auth/google` | Google OAuth One-Tap sign in |
 | `POST` | `/api/v1/model` | Enqueues a new benchmark job in Docker sandbox |
 | `GET` | `/api/v1/leaderboard` | Top 10 evaluated models ordered by score |
 | `GET` | `/api/v1/model` | Lists all past benchmark runs |

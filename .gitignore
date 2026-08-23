@@ -30,3 +30,18 @@ review_raw.txt
 # OS Specific files
 .DS_Store
 Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+*.egg-info/
+
+# SQLite DB (local only)
+backend/vibebench.db
+
+# Environment
+.env

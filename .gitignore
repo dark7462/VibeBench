@@ -45,3 +45,6 @@ backend/vibebench.db
 
 # Environment
 .env
+
+#myfiles
+aws_deploy_guide.md

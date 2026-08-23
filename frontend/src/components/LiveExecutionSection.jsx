@@ -260,7 +260,7 @@ export default function LiveExecutionSection() {
           </div>
 
           <div className="text-gray-500 font-mono">
-            VibeBench Engine v2.4.0 • Redis Distributed Queue
+            VibeBench Engine v2.4.0 • SQLite · Docker Sandbox
           </div>
         </div>
       </div>

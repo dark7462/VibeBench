@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, ArrowUpRight, ShieldCheck, CheckCircle, Sparkles, User, Briefcase, Mail, Cpu, Play } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, ShieldCheck, CheckCircle, Sparkles, User, Lock, Mail, Cpu, Play, KeyRound } from 'lucide-react'
+import { api } from '../lib/api'
 
 export default function Login() {
   const navigate = useNavigate()
   
-  // View state: 'google-login' | 'register-new-user'
-  const [view, setView] = useState('google-login')
+  // View state: 'login' | 'register-new-user'
+  const [view, setView] = useState('login')
   
   // Form fields state
-  const [googleToken, setGoogleToken] = useState('')
-  const [email, setEmail] = useState('')
+  const [usernameOrEmail, setUsernameOrEmail] = useState('admin')
+  const [password, setPassword] = useState('1234578')
   const [name, setName] = useState('')
   const [profession, setProfession] = useState('')
+  const [googleToken, setGoogleToken] = useState('')
   
   // Feedback states
   const [errorMsg, setErrorMsg] = useState('')
@@ -20,11 +22,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [googleConfigured, setGoogleConfigured] = useState(true)
 
-  const API_BASE = import.meta.env.VITE_API_BASE || (
-    typeof window !== 'undefined' && window.location.port === '5173'
-      ? `${window.location.protocol}//${window.location.hostname}:8080`
-      : ''
-  )
+  const API_BASE = api.getApiBase()
 
   useEffect(() => {
     const initGoogleOAuth = async () => {
@@ -32,11 +30,10 @@ export default function Login() {
         const configRes = await fetch(`${API_BASE}/api/v1/auth/config`)
         if (configRes.ok) {
           const config = await configRes.json()
-          if (config.clientId && config.clientId !== 'your-google-client-id-here.apps.googleusercontent.com') {
+          if (config.clientId && config.clientId !== 'your-google-client-id-here.apps.googleusercontent.com' && window.google) {
             window.handleCredentialResponse = async (response) => {
               setLoading(true)
               setErrorMsg('')
-              setSuccessMsg('')
               setGoogleToken(response.credential)
               try {
                 const loginRes = await fetch(`${API_BASE}/api/v1/auth/google`, {
@@ -55,17 +52,17 @@ export default function Login() {
                     localStorage.setItem('vibebench_profession', data.profession || '')
                     navigate('/dashboard')
                   } else {
-                    setEmail(data.email)
+                    setUsernameOrEmail(data.email)
                     setName(data.name || '')
                     setView('register-new-user')
                   }
                 } else {
                   const errData = await loginRes.json()
-                  setErrorMsg('Google login failed: ' + (errData.error || 'Authentication rejected'))
+                  setErrorMsg('Google login failed: ' + (errData.detail || errData.error || 'Authentication rejected'))
                 }
               } catch (error) {
                 console.error('Network verification failed', error)
-                setErrorMsg('Could not connect to authentication gateway.')
+                setErrorMsg('Could not connect to backend.')
               } finally {
                 setLoading(false)
               }
@@ -76,9 +73,10 @@ export default function Login() {
               callback: window.handleCredentialResponse
             })
 
-            if (view === 'google-login' && document.getElementById('google-btn-container')) {
+            const btnContainer = document.getElementById('google-btn-container')
+            if (btnContainer) {
               window.google.accounts.id.renderButton(
-                document.getElementById('google-btn-container'),
+                btnContainer,
                 { theme: 'outline', size: 'large', text: 'signin_with', width: 340, shape: 'pill' }
               )
             }
@@ -92,57 +90,63 @@ export default function Login() {
     }
 
     const timer = setTimeout(() => {
-      if (window.google) {
-        initGoogleOAuth()
-      } else {
-        setGoogleConfigured(false)
-      }
+      initGoogleOAuth()
     }, 600)
 
     return () => clearTimeout(timer)
-  }, [navigate, view, API_BASE])
+  }, [navigate, API_BASE])
 
-  const handleDemoLogin = () => {
-    localStorage.setItem('vibebench_token', 'demo_token_' + Date.now())
-    localStorage.setItem('vibebench_email', 'developer@vibebench.ai')
-    localStorage.setItem('vibebench_name', 'AI Researcher')
-    localStorage.setItem('vibebench_role', 'DEVELOPER')
-    localStorage.setItem('vibebench_profession', 'Software Engineer')
-    navigate('/dashboard')
-  }
-
-  const handleGoogleRegisterSubmit = async (e) => {
-    e.preventDefault()
-    if (!name.trim() || !profession.trim()) {
-      setErrorMsg('Name and profession are required')
+  const handlePasswordLogin = async (e) => {
+    if (e) e.preventDefault()
+    if (!usernameOrEmail.trim() || !password.trim()) {
+      setErrorMsg('Please enter username/email and password')
       return
     }
 
     setLoading(true)
     setErrorMsg('')
     try {
-      const res = await fetch(`${API_BASE}/api/v1/auth/google/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken: googleToken, name, profession })
-      })
-
-      const data = await res.json()
-      if (res.ok && data.registered) {
-        localStorage.setItem('vibebench_token', data.token)
-        localStorage.setItem('vibebench_email', data.email)
-        localStorage.setItem('vibebench_name', data.name)
-        localStorage.setItem('vibebench_role', data.role)
-        localStorage.setItem('vibebench_profession', data.profession || '')
-        navigate('/dashboard')
-      } else {
-        setErrorMsg(data.error || 'Registration failed')
-      }
+      const data = await api.login(usernameOrEmail.trim(), password.trim())
+      localStorage.setItem('vibebench_token', data.token)
+      localStorage.setItem('vibebench_email', data.email)
+      localStorage.setItem('vibebench_name', data.name)
+      localStorage.setItem('vibebench_role', data.role)
+      localStorage.setItem('vibebench_profession', data.profession || 'Admin')
+      navigate('/dashboard')
     } catch (err) {
-      setErrorMsg('Connection error. Could not connect to authentication gateway.')
+      setErrorMsg(err.message || 'Login failed')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleQuickAdminLogin = async () => {
+    setUsernameOrEmail('admin')
+    setPassword('1234578')
+    setLoading(true)
+    setErrorMsg('')
+    try {
+      const data = await api.login('admin', '1234578')
+      localStorage.setItem('vibebench_token', data.token)
+      localStorage.setItem('vibebench_email', data.email)
+      localStorage.setItem('vibebench_name', data.name)
+      localStorage.setItem('vibebench_role', data.role)
+      localStorage.setItem('vibebench_profession', data.profession || 'Admin')
+      navigate('/dashboard')
+    } catch (err) {
+      setErrorMsg(err.message || 'Admin login failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDemoGuestLogin = () => {
+    localStorage.setItem('vibebench_token', 'guest_token_' + Date.now())
+    localStorage.setItem('vibebench_email', 'guest@vibebench.ai')
+    localStorage.setItem('vibebench_name', 'Guest Researcher')
+    localStorage.setItem('vibebench_role', 'ROLE_USER')
+    localStorage.setItem('vibebench_profession', 'Researcher')
+    navigate('/dashboard')
   }
 
   return (
@@ -180,7 +184,7 @@ export default function Login() {
               Sign in to VibeBench
             </h1>
             <p className="text-xs text-[#5F6470]">
-              Access real-time telemetry, execution history, and custom benchmark triggers.
+              Access isolated Docker telemetry, leaderboard, and live benchmark runs.
             </p>
           </div>
 
@@ -191,34 +195,81 @@ export default function Login() {
             </div>
           )}
 
-          {view === 'google-login' ? (
+          {view === 'login' ? (
             <div className="space-y-4">
-              {/* Google Button Container */}
-              <div id="google-btn-container" className="flex justify-center min-h-[44px]" />
+              {/* Quick Admin Access Button */}
+              <button
+                type="button"
+                onClick={handleQuickAdminLogin}
+                disabled={loading}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#8B5CF6] hover:opacity-95 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer"
+              >
+                <KeyRound className="w-4 h-4" />
+                <span>One-Click Login as Admin (admin / 1234578)</span>
+              </button>
 
               <div className="flex items-center gap-3 my-2">
                 <div className="h-px flex-1 bg-black/10" />
-                <span className="text-[11px] font-semibold text-gray-400 uppercase">or</span>
+                <span className="text-[11px] font-semibold text-gray-400 uppercase">or enter credentials</span>
                 <div className="h-px flex-1 bg-black/10" />
               </div>
 
-              {/* Instant Guest / Demo Login */}
+              {/* Standard Username/Password Form */}
+              <form onSubmit={handlePasswordLogin} className="space-y-3 text-left text-xs">
+                <div className="space-y-1">
+                  <label className="font-semibold text-gray-700">Username or Email</label>
+                  <div className="relative">
+                    <User className="w-3.5 h-3.5 absolute left-3 top-3 text-gray-400" />
+                    <input
+                      type="text"
+                      value={usernameOrEmail}
+                      onChange={(e) => setUsernameOrEmail(e.target.value)}
+                      placeholder="admin or user@example.com"
+                      className="w-full pl-9 pr-3.5 py-2.5 bg-white rounded-xl border border-black/10 text-[#101114] focus:outline-none focus:ring-2 focus:ring-black/10 font-medium"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-gray-700">Password</label>
+                  <div className="relative">
+                    <Lock className="w-3.5 h-3.5 absolute left-3 top-3 text-gray-400" />
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-3.5 py-2.5 bg-white rounded-xl border border-black/10 text-[#101114] focus:outline-none focus:ring-2 focus:ring-black/10 font-medium"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 bg-[#101114] hover:bg-[#23262E] text-white font-semibold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {loading ? 'Authenticating...' : 'Sign In with Password'}
+                </button>
+              </form>
+
+              {/* Google Button Container */}
+              <div id="google-btn-container" className="flex justify-center min-h-[40px] pt-1" />
+
+              {/* Guest Login */}
               <button
                 type="button"
-                onClick={handleDemoLogin}
-                className="w-full py-3 px-4 rounded-xl bg-[#101114] hover:bg-[#23262E] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer"
+                onClick={handleDemoGuestLogin}
+                className="w-full py-2 px-3 text-[11px] text-gray-500 hover:text-black font-semibold transition-colors cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Continue as Guest / Demo Researcher</span>
+                Continue as Guest / Viewer →
               </button>
-
-              <p className="text-[11px] text-center text-gray-500">
-                Instant access to benchmark suites without OAuth setup.
-              </p>
             </div>
           ) : (
-            /* Registration completion form */
-            <form onSubmit={handleGoogleRegisterSubmit} className="space-y-4 text-left text-xs">
+            /* Registration completion form for Google new users */
+            <form onSubmit={handlePasswordLogin} className="space-y-4 text-left text-xs">
               <div className="space-y-1">
                 <label className="font-semibold text-gray-700">Full Name</label>
                 <input

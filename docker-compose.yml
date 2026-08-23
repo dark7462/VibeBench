@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vibebench-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/vibebench.db:/app/backend/vibebench.db
+      - /var/run/docker.sock:/var/run/docker.sock # Allows containerized backend to spawn sandbox containers
+    environment:
+      - VIBEBENCH_JWT_SECRET=vibe-bench-custom-auth-v2-jwt-signature-key-256-bits-long-secure-key
+      - VIBEBENCH_GOOGLE_CLIENT_ID=972017410426-v9na2cep5uvu47odj524nsbb90np39n3.apps.googleusercontent.com
+    restart: unless-stopped

@@ -1,15 +1,15 @@
-// VibeBench API Client with seamless local mock fallback and live Spring Boot backend integration
+// VibeBench API Client for FastAPI Backend (SQLite & Zero-Config Local & Cloud Deploys)
 
 const API_BASE = import.meta.env.VITE_API_BASE || (
   typeof window !== 'undefined' && window.location.port === '5173'
-    ? `${window.location.protocol}//${window.location.hostname}:8080`
+    ? `${window.location.protocol}//${window.location.hostname}:8000`
     : ''
 );
 
 export const DEFAULT_LEADERBOARD = [
   {
     rank: '01',
-    name: 'GPT-4o (2024-11-20)',
+    name: 'GPT-4o',
     provider: 'OpenAI',
     badge: 'openai',
     score: 92.46,
@@ -66,51 +66,6 @@ export const DEFAULT_LEADERBOARD = [
     type: 'Open Source',
     language: 'Polyglot',
     change: '+3.4'
-  },
-  {
-    rank: '05',
-    name: 'Qwen 2.5 Coder 32B',
-    provider: 'Alibaba',
-    badge: 'qwen',
-    score: 82.60,
-    accuracy: 87.8,
-    latency: '13.5s',
-    cost: '$0.004',
-    selfHealing: '76.5%',
-    security: '95.0%',
-    type: 'Open Source',
-    language: 'Polyglot',
-    change: '+0.5'
-  },
-  {
-    rank: '06',
-    name: 'Llama 3.3 70B Instruct',
-    provider: 'Meta',
-    badge: 'meta',
-    score: 80.90,
-    accuracy: 85.3,
-    latency: '15.0s',
-    cost: '$0.006',
-    selfHealing: '73.8%',
-    security: '94.2%',
-    type: 'Open Source',
-    language: 'Polyglot',
-    change: '+0.2'
-  },
-  {
-    rank: '07',
-    name: 'Mistral Large 2',
-    provider: 'Mistral',
-    badge: 'mistral',
-    score: 79.44,
-    accuracy: 84.1,
-    latency: '14.8s',
-    cost: '$0.012',
-    selfHealing: '71.0%',
-    security: '93.8%',
-    type: 'Proprietary',
-    language: 'Polyglot',
-    change: '-0.4'
   }
 ];
 
@@ -118,7 +73,7 @@ export const DEFAULT_STATS = {
   totalRuns: 1248,
   codingProblems: 328,
   modelsEvaluated: 87,
-  sandboxIsolation: '99.9%',
+  sandboxIsolation: '100%',
   topModel: 'GPT-4o',
   avgLatencyMs: 13420,
   totalCostUsd: 184.62
@@ -161,6 +116,18 @@ export const MOCK_SCENARIOS = [
 ];
 
 export const api = {
+  getApiBase() {
+    return API_BASE;
+  },
+
+  async getHealth() {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/healthcheck`);
+      if (res.ok) return await res.json();
+    } catch {}
+    return { status: 'unknown', app: 'VibeBench API' };
+  },
+
   async getStats() {
     try {
       const res = await fetch(`${API_BASE}/api/v1/stats`);
@@ -168,9 +135,7 @@ export const api = {
         const data = await res.json();
         return { ...DEFAULT_STATS, ...data };
       }
-    } catch {
-      // Fallback
-    }
+    } catch {}
     return DEFAULT_STATS;
   },
 
@@ -183,10 +148,31 @@ export const api = {
           return data;
         }
       }
-    } catch {
-      // Fallback
-    }
+    } catch {}
     return DEFAULT_LEADERBOARD;
+  },
+
+  async getJob(jobId) {
+    const token = localStorage.getItem('vibebench_token');
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/job/${jobId}`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      if (res.ok) return await res.json();
+    } catch {}
+    return null;
+  },
+
+  async getRuns(modelName = '') {
+    const token = localStorage.getItem('vibebench_token');
+    const url = modelName ? `${API_BASE}/api/v1/model?name=${encodeURIComponent(modelName)}` : `${API_BASE}/api/v1/model`;
+    try {
+      const res = await fetch(url, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      if (res.ok) return await res.json();
+    } catch {}
+    return [];
   },
 
   async triggerBenchmark(payload) {
@@ -208,11 +194,49 @@ export const api = {
     }
     // Return simulated job for interactive preview
     return {
-      id: 'job_' + Math.random().toString(36).substring(2, 9),
+      job_id: 'job_' + Math.random().toString(36).substring(2, 9),
+      jobId: 'job_' + Math.random().toString(36).substring(2, 9),
       modelName: payload.modelName || 'GPT-4o',
       status: 'QUEUED',
       createdAt: new Date().toISOString(),
-      message: 'Benchmark job successfully scheduled in Docker sandbox pool'
+      message: 'Benchmark job scheduled in Docker sandbox pool'
     };
+  },
+
+  async login(email, password) {
+    const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Login failed');
+    }
+    return await res.json();
+  },
+
+  async register(name, email, password, profession) {
+    const res = await fetch(`${API_BASE}/api/v1/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password, profession })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Registration failed');
+    }
+    return await res.json();
+  },
+
+  // Fetches free models from opencode CLI + API provider list
+  // Called by BenchmarkModal to power the model picker UI
+  async getModels() {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/models`);
+      if (res.ok) return await res.json();
+    } catch {}
+    // Fallback if backend is unreachable
+    return { free_models: [], api_providers: [] };
   }
 };

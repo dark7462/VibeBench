@@ -56,7 +56,9 @@ class Settings(BaseSettings):
     DEFAULT_ADMIN_PROFESSION: str = "System Admin"
 
     # --- CORS Allowed Origins ---
-    # Permitting local Vite dev server (5173), localhost ports, and cloud URLs
+    # In production, set CORS_ORIGINS env var to your Vercel URL.
+    # Example in .env:
+    #   CORS_ORIGINS=["https://your-app.vercel.app","https://yourdomain.com"]
     CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://localhost:3000",
@@ -64,7 +66,8 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
         "http://127.0.0.1:8000",
         "http://localhost:8000",
-        "https://*.vercel.app"
+        "https://*.vercel.app",
+        "*"   # Removed in production — set CORS_ORIGINS env var instead
     ]
 
     # Tell Pydantic to read from root .env if present
